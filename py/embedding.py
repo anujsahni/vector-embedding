@@ -8,7 +8,7 @@ import requests
 # NVAI endpoint for the NV-DINOv2 NIM
 nvai_url="https://ai.api.nvidia.com/v1/cv/nvidia/nv-dinov2"
 
-header_auth = os.getenv('NVIDIA_API_KEY')
+header_auth = f"Bearer {os.getenv('NVIDIA_API_KEY')}"
 
 def _upload_asset(input_bytes, description):
 
