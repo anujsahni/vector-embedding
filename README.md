@@ -2,8 +2,6 @@
 
 This service exposes a REST API to download an image from a provided URL and generate a vector embedding using NVIDIA's **NV-DINOv2** model. The service is built with **FastAPI** and is designed to run on an EC2 instance.
 
----
-
 ## Features
 
 - Accepts an **image URL** as input.
@@ -11,7 +9,6 @@ This service exposes a REST API to download an image from a provided URL and gen
 - Generates a **vector of size 1024** using NVIDIA NV-DINOv2 embeddings.
 - Returns JSON response with the vector, saved filename, and source URL.
 
----
 
 ## Prerequisites
 
