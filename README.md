@@ -22,6 +22,25 @@ The NVIDIA API key must be set in the environment:
 export NVIDIA_API_KEY="your_actual_api_key_here"
 ```
 
+## How to Run the Image Embedding Service
+
+The Image Embedding Service accepts an image URL and returns an 1024 dimensional vector embedding generated using NVIDIA's `nv-dinov2` model.  
+The service listens on port **8000** by default.
+
+### Example cURL Request
+
+```bash
+curl -X POST http://<hostname>:8000/vectorize-image \
+  -H "Content-Type: application/json" \
+  -d '{
+        "image_url": "https://upload.wikimedia.org/wikipedia/commons/e/e4/Morgan_Freeman_Deauville_2018.jpg"
+      }'
+```
+Replace:
+
+- <hostname> with your public hostname or public IP
+- image_url with any valid image URL
+
 ## ⚙️ Systemd Service Setup
 
 To run the Image Service automatically at system startup, you can create a `systemd` service.
