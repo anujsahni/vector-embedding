@@ -6,7 +6,7 @@ This service exposes a REST API to download an image from a provided URL and gen
 
 - Accepts an **image URL** as input.
 - Downloads the image locally (where the service is running).
-- Generates a **vector of size 1024** using NVIDIA NV-DINOv2 embeddings.
+- Generates a **vector of size 1536** using NVIDIA NV-DINOv2 embeddings.
 - Returns JSON response with the vector, saved filename, and source URL.
 
 
@@ -24,7 +24,7 @@ export NVIDIA_API_KEY="your_actual_api_key_here"
 
 ## How to Run the Image Embedding Service
 
-The Image Embedding Service accepts an image URL and returns an 1024 dimensional vector embedding generated using NVIDIA's `nv-dinov2` model.  
+The Image Embedding Service accepts an image URL and returns an 1536 dimensional vector embedding generated using NVIDIA's `nv-dinov2` model.  
 The service listens on port **8000** by default.
 
 ### Example cURL Request
