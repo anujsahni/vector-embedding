@@ -5,15 +5,16 @@ This service exposes a REST API to download an image from a provided URL and gen
 ## Features
 
 - Accepts an **image URL** as input.
+- Accepts an **image in Base64 JSON** as input.
+- Accepts an **image file via multipart upload** (ideal for mobile cameras).
 - Downloads the image locally (where the service is running).
 - Generates a **vector of size 1536** using NVIDIA NV-DINOv2 embeddings.
 - Returns JSON response with the vector, saved filename, and source URL.
 
-
 ## Prerequisites
 
 - Python 3.9+ installed
-- `pip` packages: `fastapi`, `uvicorn`, `requests`, `pydantic`
+- `pip` packages: `fastapi`, `uvicorn`, `requests`, `pydantic`, `python-multipart`
 - A valid NVIDIA API key for NV-DINOv2 embedding.
 
 The NVIDIA API key must be set in the environment:
@@ -27,7 +28,22 @@ export NVIDIA_API_KEY="your_actual_api_key_here"
 The Image Embedding Service accepts an image URL and returns an 1536 dimensional vector embedding generated using NVIDIA's `nv-dinov2` model.  
 The service listens on port **8000** by default.
 
+### Start the Service Locally
+
+```bash
+uvicorn py.imagesvc:app --host 0.0.0.0 --port 8000 --reload
+```
+
+The API can be explored interactively at:
+
+```bash
+http://localhost:8000/docs
+
+```
+
 ### Example cURL Request
+
+#### 1. Vectorize Image by URL
 
 ```bash
 curl -X POST http://<hostname>:8000/vectorize-image \
@@ -38,8 +54,39 @@ curl -X POST http://<hostname>:8000/vectorize-image \
 ```
 Replace:
 
-- <hostname> with your public hostname or public IP
-- image_url with any valid image URL
+- `<hostname>` with your public hostname or public IP
+- `image_url` with any valid image URL
+
+#### 2. Vectorize Image by Base64
+
+Convert image to Base64 (macOS/Linux):
+```bash
+base64 image.png > img.b64
+```
+
+Call the service:
+
+```bash
+curl -X POST http://<hostname>:8000/vectorize-image-base64 \
+  -H "Content-Type: application/json" \
+  -d "{
+        \"image_base64\": \"$(cat img.b64)\",
+        \"filename\": \"image.png\"
+      }"
+```
+
+#### 3. Vectorize Image via Multipart Upload
+
+```bash
+curl -X POST http://<hostname>:8000/vectorize-image-upload \
+  -F "file=@image.png"
+```
+
+This endpoint streams the image bytes directly to the server, saves the file in the downloads/ folder, and returns the vector embedding. Ideal for Android or mobile camera uploads.
+
+### Downloads Folder
+
+All uploaded images via URL, Base64, or multipart are saved in the downloads/ folder.
 
 ## ⚙️ Systemd Service Setup
 
