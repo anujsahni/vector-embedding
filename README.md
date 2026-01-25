@@ -18,7 +18,6 @@ The service is built with **FastAPI** and can run locally or on an EC2 instance.
 - Generates a **vector embedding** from the selected backend.
 - Returns JSON response with the vector, saved filename, source URL, and backend info.
 
-<<<<<<< HEAD
 ---
 
 ## Backend Selection
@@ -35,13 +34,6 @@ If no backend is specified, `mobileclip` is used by default.
 ---
 
 ## Prerequisites
-=======
-## Prerequisites
-
-- Python 3.9+ installed
-- `pip` packages: `fastapi`, `uvicorn`, `requests`, `pydantic`, `python-multipart`
-- A valid NVIDIA API key for NV-DINOv2 embedding.
->>>>>>> 83e0e095a94f15e148b8ee1e932fb73cae4ce790
 
 - Python 3.9+
 - `pip` packages: `fastapi`, `uvicorn`, `requests`, `pydantic`, `python-multipart`
@@ -64,20 +56,7 @@ The service listens on port **8000** by default.
 uvicorn py.imagesvc:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-<<<<<<< HEAD
 Interactive API docs:
-=======
-The API can be explored interactively at:
-
-```bash
-http://localhost:8000/docs
-
-```
-
-### Example cURL Request
->>>>>>> 83e0e095a94f15e148b8ee1e932fb73cae4ce790
-
-#### 1. Vectorize Image by URL
 
 ```bash
 http://localhost:8000/docs
@@ -109,34 +88,18 @@ curl -X POST "http://<hostname>:8000/vectorize-image?backend=nv_dino" \
       }'
 ```
 
-<<<<<<< HEAD
 ### 2. Vectorize Image by Base64
 
 Convert image to Base64 (macOS/Linux):
 
-=======
-- `<hostname>` with your public hostname or public IP
-- `image_url` with any valid image URL
-
-#### 2. Vectorize Image by Base64
-
-Convert image to Base64 (macOS/Linux):
->>>>>>> 83e0e095a94f15e148b8ee1e932fb73cae4ce790
 ```bash
 base64 image.png > img.b64
 ```
 
-<<<<<<< HEAD
 Call the service with default backend:
 
 ```bash
 curl -X POST "http://<hostname>:8000/vectorize-image-base64" \
-=======
-Call the service:
-
-```bash
-curl -X POST http://<hostname>:8000/vectorize-image-base64 \
->>>>>>> 83e0e095a94f15e148b8ee1e932fb73cae4ce790
   -H "Content-Type: application/json" \
   -d "{
         \"image_base64\": \"$(cat img.b64)\",
@@ -144,7 +107,6 @@ curl -X POST http://<hostname>:8000/vectorize-image-base64 \
       }"
 ```
 
-<<<<<<< HEAD
 Specify NV-DINOv2 backend:
 
 ```bash
@@ -177,20 +139,6 @@ curl -X POST "http://<hostname>:8000/vectorize-image-upload?backend=nv_dino" \
 All images uploaded via URL, Base64, or multipart are saved in the `downloads/` folder.
 
 ---
-=======
-#### 3. Vectorize Image via Multipart Upload
-
-```bash
-curl -X POST http://<hostname>:8000/vectorize-image-upload \
-  -F "file=@image.png"
-```
-
-This endpoint streams the image bytes directly to the server, saves the file in the downloads/ folder, and returns the vector embedding. Ideal for Android or mobile camera uploads.
-
-### Downloads Folder
-
-All uploaded images via URL, Base64, or multipart are saved in the downloads/ folder.
->>>>>>> 83e0e095a94f15e148b8ee1e932fb73cae4ce790
 
 ## ⚙️ Systemd Service Setup
 
