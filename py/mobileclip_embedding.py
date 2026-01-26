@@ -4,6 +4,7 @@ import io
 from pathlib import Path
 from torchvision import transforms
 import warnings
+import time
 
 warnings.filterwarnings("ignore")
 
@@ -42,7 +43,7 @@ def load_model_once():
         model.eval()
         model = model.to(memory_format=torch.channels_last)
 
-        # Warmup dummy
+        # Warmup
         dummy = torch.randn(1, 3, 224, 224).to(
             DEVICE, memory_format=torch.channels_last
         )
@@ -67,12 +68,26 @@ def _load_image_from_bytes(image_bytes):
     return _preprocess(img)
 
 # -----------------------------
-# Embedding functions
+# Core embedding runner
+# -----------------------------
+def _run_embedding(batch_tensor):
+    with torch.inference_mode():
+        emb = _model.encode_image(batch_tensor)
+        emb = emb / emb.norm(dim=-1, keepdim=True)
+    return emb
+
+# -----------------------------
+# Embedding APIs (NV-DINO compatible)
 # -----------------------------
 def compute_vector(image_paths, description="Input Image"):
-    """Compute embeddings from file paths (batch aware)"""
+    """
+    Compute embeddings from file paths (batch aware)
+    Returns NV-DINO compatible JSON
+    """
     if _model is None:
         load_model_once()
+
+    start_time = time.time()
 
     if isinstance(image_paths, str):
         image_paths = [image_paths]
@@ -83,43 +98,61 @@ def compute_vector(image_paths, description="Input Image"):
     tensors = [_load_image_from_path(p) for p in image_paths]
     batch = torch.stack(tensors).to(DEVICE, memory_format=torch.channels_last)
 
-    results = []
-    with torch.inference_mode():
-        for i in range(0, len(batch), BATCH_SIZE):
-            chunk = batch[i:i + BATCH_SIZE]
-            emb = _model.encode_image(chunk)
-            emb = emb / emb.norm(dim=-1, keepdim=True)
+    metadata = []
 
-            for j in range(emb.shape[0]):
-                results.append({
-                    "embedding": emb[j].cpu().tolist(),
-                    "index": i + j,
-                    "description": description[i + j]
-                })
+    for i in range(0, len(batch), BATCH_SIZE):
+        chunk = batch[i:i + BATCH_SIZE]
+        emb = _run_embedding(chunk)
+
+        for j in range(emb.shape[0]):
+            metadata.append({
+                "embedding": emb[j].cpu().tolist(),
+                "frame_num": i + j
+            })
+
+    elapsed_ms = int((time.time() - start_time) * 1000)
 
     return {
-        "model": "MobileCLIP-S1-TorchScript-Optimized",
-        "object": "embedding",
-        "embedding_dim": len(results[0]["embedding"]),
-        "data": results
+        "object": "inference.completion",
+        "model": "mobileclip_s1",
+        "created": int(time.time()),
+        "metadata": metadata,
+        "usage": {
+            "inference_response_time": elapsed_ms
+        },
+        "description": description[0] if description else "Input Image"
     }
 
 def compute_vector_from_bytes(image_bytes, description="Input Image"):
-    """Compute embedding from raw image bytes (single image only)"""
+    """
+    Compute embedding from raw image bytes (single image)
+    Returns NV-DINO compatible JSON
+    """
     if _model is None:
         load_model_once()
+
+    start_time = time.time()
 
     tensor = _load_image_from_bytes(image_bytes).unsqueeze(0).to(
         DEVICE, memory_format=torch.channels_last
     )
 
-    with torch.inference_mode():
-        emb = _model.encode_image(tensor)
-        emb = emb / emb.norm(dim=-1, keepdim=True)
+    emb = _run_embedding(tensor)
+
+    elapsed_ms = int((time.time() - start_time) * 1000)
 
     return {
-        "model": "MobileCLIP-S1-TorchScript-Optimized",
-        "embedding_dim": emb.shape[-1],
-        "embedding": emb[0].cpu().tolist(),
+        "object": "inference.completion",
+        "model": "mobileclip_s1",
+        "created": int(time.time()),
+        "metadata": [
+            {
+                "embedding": emb[0].cpu().tolist(),
+                "frame_num": 0
+            }
+        ],
+        "usage": {
+            "inference_response_time": elapsed_ms
+        },
         "description": description
     }
